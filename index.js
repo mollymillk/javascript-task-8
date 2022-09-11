@@ -1,32 +1,38 @@
 'use strict';
 
-const { get } = require('got');
-
 const async = require('./async');
 
-const key = require('./key.json').key;
+const translation = {
+    "be": "дайце мне вады",
+    "uk": "дайте мені води",
+    "en": "give me water",
+    "fr": "donnez-moi de l'eau",
+    "de": "gib mir Wasser",
+    "it": "dammi dell'acqua",
+    "pl": "daj mi wody",
+    "tr": "verin bana su",
+    "th": "ให้ฉัน้ำ", 
+    "ja": "い水" 
+}
 
-/**
- * Возвращает функцию, которая возвращает промис
- * @param {String} lang - язык на который нужно перевести
- * @param {String} text - переводимый текст
- * @returns {Function<Promise>}
- */
-function createTranslationJob(lang, text) {
-    return () => get('https://translate.yandex.net/api/v1.5/tr.json/translate', {
-        query: { key, lang, text },
-        json: true
-    });
+function createTranslationJob(lang) {
+    return translation[lang];
 }
 
 const languages = ['be', 'uk', 'en', 'fr', 'de', 'it', 'pl', 'tr', 'th', 'ja'];
 const text = 'дайте мне воды';
 
-const jobs = languages.map(language => createTranslationJob(language, text));
+const jobs = languages.map(language => createTranslationJob(language));
+
+// async
+//     .runParallel(jobs, 2)
+//     .then(result => result.map(item => item instanceof Error ? 'error': item))
+//     .then(translations => translations.join('\n'))
+//     .then(console.info);
 
 async
     .runParallel(jobs, 2)
-    .then(result => result.map(item => item instanceof Error ? item : item.body.text[0]))
+    .then(result => result.map(item => item instanceof Error ? 'error': item))
     .then(translations => translations.join('\n'))
     .then(console.info);
 
