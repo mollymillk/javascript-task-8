@@ -40,9 +40,13 @@ function runParallel(jobs, parallelNum, timeout = 1000) {
         });
     }
     const result = new Promise(resolve => {
-        void getWords().then(data => {
-            resolve([...data]);
-        });
+        if (jobs.length === 0) {
+            resolve([]);
+        }
+        else
+            void getWords().then(data => {
+                resolve([...data]);
+            });
     });
     return result;
 }

@@ -41,7 +41,9 @@ function runParallel(jobs:Translations, parallelNum:number, timeout = 1000):Prom
 	}
 
 	const result:Promise<string[]> = new Promise(resolve => {
-		void getWords().then(data => {
+		if (jobs.length === 0) {
+			resolve([]);
+		} else void getWords().then(data => {
 			resolve([...data]);
 		});
 	});
