@@ -9,46 +9,41 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const isStar = false;
-let index = 0;
-function runParallel(jobs, parallelNum, timeout = 1000) {
-    function getMidtermResult() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const promise = new Promise(resolve => {
-                let parallelCounter = 0;
-                const result = [];
-                setTimeout(() => {
-                    while (parallelCounter < parallelNum) {
-                        result.push(jobs[index]);
-                        parallelCounter++;
-                        index++;
-                        resolve(result);
-                    }
-                }, timeout);
-            });
-            const midtermResult = yield promise;
-            return midtermResult;
-        });
-    }
-    function getWords() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const result = [];
-            while (index < jobs.length) {
-                const words = yield getMidtermResult();
-                result.push(...words);
-            }
-            return result;
-        });
-    }
-    const result = new Promise(resolve => {
+function runParallel(jobs, parallelNum) {
+    let index = 0;
+    return new Promise((resolve) => {
+        const result = [];
         if (jobs.length === 0) {
-            resolve([]);
+            return resolve(jobs);
         }
-        else
-            void getWords().then(data => {
-                resolve([...data]);
+        function getMidtermResult() {
+            return __awaiter(this, void 0, void 0, function* () {
+                let parralelIndex = 0;
+                const parallelOperations = [];
+                while (parralelIndex < parallelNum) {
+                    parallelOperations.push(jobs[index]);
+                    index++;
+                    parralelIndex++;
+                }
+                let operationIndex = 0;
+                while (operationIndex < parallelNum) {
+                    const test = yield parallelOperations[operationIndex];
+                    result.push(test);
+                    operationIndex++;
+                }
             });
+        }
+        function getJob() {
+            return __awaiter(this, void 0, void 0, function* () {
+                while (index < jobs.length) {
+                    yield getMidtermResult();
+                }
+                console.log(result);
+                resolve(result);
+            });
+        }
+        void getJob();
     });
-    return result;
 }
 module.exports = {
     runParallel,

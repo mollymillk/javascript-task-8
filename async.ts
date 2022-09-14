@@ -1,55 +1,56 @@
 'use strict';
 
-type Translation = string;
-type Translations =  Translation[Counter];
+type Translation = Promise<() => string>;
+type Translations =  Translation[];
 type Counter = number;
 
 const isStar = false;
-let index:Counter = 0;
 
-function runParallel(jobs:Translations, parallelNum:number, timeout = 1000):Promise<string[]> {
+function runParallel(jobs:Translations, parallelNum:number) {
+	let index:Counter = 0;
 
-	async function getMidtermResult():Promise<string[]>{
+	return new Promise((resolve) => {
+		const result = [];
 
-		const promise:Promise<string[]> = new Promise(resolve => {
-			let parallelCounter = 0;
-			const result:string[] = [];
-
-			setTimeout(() => {
-
-				while (parallelCounter < parallelNum) {
-					result.push(jobs[index]);
-					parallelCounter++;
-					index++;
-					resolve(result);
-				}
-			}, timeout);
-
-		});
-
-		const midtermResult:string[] = await promise;
-		return midtermResult; 
-	}
-
-	async function getWords() {
-		const result:string[] = [];
-		while (index < jobs.length) {
-			const words = await getMidtermResult();
-			result.push(...words);
-		}
-		return result;
-	}
-
-	const result:Promise<string[]> = new Promise(resolve => {
 		if (jobs.length === 0) {
-			resolve([]);
-		} else void getWords().then(data => {
-			resolve([...data]);
-		});
-	});
+			return resolve(jobs);
+		}
 
-	return result;
+		async function getMidtermResult() {
+
+			let parralelIndex = 0;
+			const parallelOperations = [];
+
+			while (parralelIndex < parallelNum) {
+				parallelOperations.push(jobs[index]);
+				index++;			
+				parralelIndex++;
+			}
+
+			let operationIndex = 0;
+
+			while (operationIndex < parallelNum) {
+				const test = await parallelOperations[operationIndex];
+				result.push(test);
+				operationIndex++;
+			}
+			
+		}
+
+		async function getJob() {
+
+			while (index < jobs.length) {
+				await getMidtermResult();
+			}			
+			console.log(result);
+			
+			resolve(result);
+		}
+
+		void getJob();
+	});
 }
+
 
 module.exports = {
 	runParallel,

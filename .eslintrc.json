@@ -17,7 +17,7 @@
   "plugins": [
       "@typescript-eslint"
   ],
-  "ignorePatterns": ["index.js", "async.js", "async.spec.js"],
+  "ignorePatterns": ["index.js", "async.js", "async.spec.js", "test.js"],
   "rules": {
       "indent": [
           "error",
