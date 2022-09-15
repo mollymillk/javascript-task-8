@@ -45,7 +45,7 @@ const jobs = languages.map(language => createTranslationJob(language, text));
 
 async
     .runParallel(jobs, 2)
-    .then(result => result.map(item => item instanceof Error ? item : item.translations[0].text))
+    .then(result => result.map(item => item instanceof Error ? item : item.value.translations[0].text))
     .then(translations => translations.join('\n'))
     .then(console.info);
 

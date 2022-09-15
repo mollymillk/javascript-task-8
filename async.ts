@@ -1,53 +1,71 @@
 'use strict';
 
-type Translation = Promise<() => string>;
-type Translations =  Translation[];
+
+interface Translation {
+	text: string;
+	detectedLanguageCode: string;
+}
+
+interface Translations {
+	translations: Translation[];
+}
+
+type PromiseResult = Promise<Translations>[];
 type Counter = number;
 
 const isStar = false;
 
-function runParallel(jobs:Translations, parallelNum:number) {
+function runParallel(jobs:PromiseResult, parallelNum:number):Promise<PromiseSettledResult<Translations>[]>|Promise<null[]> {
 	let index:Counter = 0;
 
 	return new Promise((resolve) => {
-		const result = [];
 
 		if (jobs.length === 0) {
-			return resolve(jobs);
+			return resolve([]);
 		}
 
-		async function getMidtermResult() {
+		function getResult():PromiseResult {
 
-			let parralelIndex = 0;
-			const parallelOperations = [];
+			let parralelIndex:Counter = 0;
+			const midtermResult:PromiseResult = [];
 
 			while (parralelIndex < parallelNum) {
-				parallelOperations.push(jobs[index]);
+				const test = jobs[index];							
+				midtermResult.push(test);
 				index++;			
 				parralelIndex++;
 			}
 
-			let operationIndex = 0;
-
-			while (operationIndex < parallelNum) {
-				const test = await parallelOperations[operationIndex];
-				result.push(test);
-				operationIndex++;
-			}
-			
+			return midtermResult;
 		}
 
-		async function getJob() {
+		function getValue():void {
 
-			while (index < jobs.length) {
-				await getMidtermResult();
+			const result:PromiseSettledResult<Translations>[] = [];
+
+			while ( index < jobs.length) {
+				const res = getResult();
+
+				void Promise.allSettled(res)	
+	
+					.then(res => {
+						let resIndex = 0;
+
+						while (resIndex < res.length) {
+							result.push(res[resIndex]);
+							resIndex++;
+						}
+
+						if (result.length === jobs.length) {
+							resolve(result);
+						}
+						
+					});	
 			}			
-			console.log(result);
-			
-			resolve(result);
 		}
 
-		void getJob();
+		getValue();		
+
 	});
 }
 
